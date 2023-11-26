@@ -15,17 +15,20 @@ def main(screenshot=False):
 
     # define active DoFs
     base_joints = [joint_from_name(robots['pr2'], name) for name in PR2_GROUPS['base']]
-    print(kalman_filter(0,0,0))
+    # print(kalman_filter(0,0,0))
     collision_fn = get_collision_fn_PR2(robots['pr2'], base_joints, list(obstacles.values()))
 
     start_config = np.array(get_joint_positions(robots['pr2'], base_joints))
-    goal_configs = np.array([[-2.4,-1.4,0],
-                    [-2.4,-0.4,np.pi/2]])
+    goal_configs = np.array([-2.4,-0.4,np.pi])
     
-    kalmanFilter_error = kalman_filter(start_config, goal_configs)
+    trajectory = motion_planner(start_config,goal_configs)
+                    # [-2.4,-0.4,np.pi/2]])
+    # print(trajectory)
+    
+    # kalmanFilter_error = kalman_filter(start_config, goal_configs)
     
 
-    time.sleep(1000)
+    # time.sleep(1000)
    
     # Keep graphics window opened
     wait_if_gui()
