@@ -26,6 +26,10 @@ def execute_trajectory(robot, joints, path, sleep=None):
         return
     print('Executing trajectory')
     for bq in path:
+        # print("robot:",robot)
+        # print("joints:",joints)
+        # print("bq:",bq.dtype)
+        # print("bq:",bq.shape)
         set_joint_positions(robot, joints, bq)
         if sleep is None:
             wait_if_gui('Continue?')

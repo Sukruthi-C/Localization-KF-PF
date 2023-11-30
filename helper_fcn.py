@@ -1,6 +1,7 @@
 # Imports
 import numpy as np
 import math
+import pybullet as p
 
 # Constants
 R = np.diag([0.1, 0.1])  # Measurement noise covariance
@@ -43,6 +44,17 @@ def calculate_environmental_error(environmental_factors):
     environmental_error_value = None
     # This could include temperature, humidity, electromagnetic interference, etc.
     return environmental_error_value
+
+def getMeasuredPosition(robot):
+    print("robot:",robot)
+    pos,ori = p.getBasePositionAndOrientation(robot)
+    print("pos",pos)
+    print("ori",ori)
+    noisy_pos = np.array(pos) + np.random.normal(0, 1, 3)
+    # noisy_ori = np.array(ori) + np.random.normal(0,1,4)
+    # noisy_ori = p.getQuaternionFromEuler(noisy_ori)
+    # TO DO: implement for orientation
+    return noisy_pos
 
 
 def motion_planner_model(current_position, target_position):
@@ -138,3 +150,42 @@ def velocity_model(current_position,target_position):
     # Control Input to the robot
     u = np.array([v_limited, omega_limited])
     return u
+
+def predict_next_state(current_state,dt,v,omega):
+    """
+    current_state: current position and orientation of the robot 
+                    (x,y,theta)
+    dt: small change in time/step
+    v: linear velocity
+    omega: angular velocity"""
+
+    x,y,theta = current_state
+    d_theta = omega*dt
+    theta_new = theta + d_theta
+    if (omega == 0):
+        # when the robot is moving in a straight line
+        d_x = v*dt*np.cos(theta)
+        d_y = v*dt*np.sin(theta)
+
+    else:
+        # when the robot is turning
+        d_x = (v/omega)*(np.sin(theta_new)-np.sin(theta))
+        d_y = (v/omega)*(-np.cos(theta_new)+np.cos(theta))
+
+    x_new = d_x + x
+    y_new = d_y + y
+
+    next_state = np.array([x_new,y_new,theta_new])
+
+    return next_state
+
+def angle_diff(ori1,ori2):
+    diff = ori1-ori2
+
+    while (diff > np.pi):
+        diff-=2*np.pi
+    
+    while (diff< -np.pi):
+        diff+=2*np.pi
+
+    return diff
