@@ -3,21 +3,21 @@ import numpy as np
 import math
 
 # Constants
-R = np.diag([0.1, 0.1])  # Measurement noise covariance
+R = np.diag([0.01, 0.01, 0.01])  # Measurement noise covariance
 dt = 0.1 # Seconds
-linear_V_limit = 0.1 # m/s
-angular_W_limit = 0.01 # rad/s
+linear_V_limit = 0.01 # m/s
+angular_W_limit = 0.1 # rad/s
 
 # Public Functions
 def simulate_sensor_reading(actual_position):
     # Systematic Error
-    systematic_error = calculate_systematic_error()
+    # systematic_error = calculate_systematic_error()
 
     # Random Error
     random_error = generate_random_error()
 
     # Environmental Factors (optional, based on your project's complexity)
-    environmental_error = calculate_environmental_error()
+    # environmental_error = calculate_environmental_error()
 
     # Combine errors with the actual position
     noisy_position = actual_position + random_error
@@ -35,7 +35,7 @@ def generate_random_error():
     # You can use sensor_noise_params to set the mean and standard deviation
 
     # Generate noise with 0 mean and R cov
-    random_error_value = np.random.multivariate_normal([0, 0], R)
+    random_error_value = np.random.multivariate_normal([0, 0, 0], R)
     return random_error_value
 
 def calculate_environmental_error(environmental_factors):
@@ -48,11 +48,10 @@ def calculate_environmental_error(environmental_factors):
 def motion_planner_model(current_position, target_position):
     # Position: (x,y,theta)
     # Return linear and angular velocity of the robot
-    delta_position = (target_position - current_position)/dt
-    omega = (math.atan2(delta_position[1], delta_position[0]) + delta_position[2])/dt
-    v = np.sqrt(delta_position[0]**2 + delta_position[1]**2)
+    delta = target_position - current_position
+    delta = delta/dt
 
-    return v,omega
+    return delta
 
 def motion_planner(current_position, target_position):
 
@@ -69,7 +68,7 @@ def motion_planner(current_position, target_position):
     actions = np.empty((0, 2))
 
     # Rotate on the spot: "R"-T-R
-    print("ROTATING")
+    # print("ROTATING")
     current_state = current_position
     angle_to_rotate = math.atan2(target_position[1]-current_position[1],target_position[0]-current_position[0]) - current_position[2]
     end_state = np.array([current_position[0],current_position[1],angle_to_rotate])
@@ -89,7 +88,7 @@ def motion_planner(current_position, target_position):
     
     
     # Translate towards the destination: R-"T"-R
-    print("TRANSLATING")
+    # print("TRANSLATING")
     end_state = np.array([target_position[0],target_position[1],current_state[2]])
     while (np.linalg.norm(current_state-end_state)> 0.02):
         u = velocity_model(current_state,end_state)
@@ -107,7 +106,7 @@ def motion_planner(current_position, target_position):
 
     
     # Rotate on the spot: R-T-"R"
-    print("ROTATING")
+    # print("ROTATING")
     angle_to_rotate = target_position[2] - current_state[2]
     end_state = target_position
     while (np.linalg.norm(current_state-end_state)> 0.02):
@@ -131,10 +130,16 @@ def motion_planner(current_position, target_position):
 
 def velocity_model(current_position,target_position):
     # Calculate the linear and angular velocity of the robot
-    v,omega = motion_planner_model(current_position,target_position)
-    v_limited = np.clip(v,-linear_V_limit,linear_V_limit)
-    omega_limited = np.clip(omega,-angular_W_limit,angular_W_limit)
+    delta = motion_planner_model(current_position,target_position)
+    theta = current_position[2]
+    trans = np.array([[np.cos(theta), -np.sin(theta), 0],
+                      [np.sin(theta), np.cos(theta), 0],
+                      [0, 0, 1]])
+    
+    delta = np.linalg.inv(trans) @ delta
+    # print("Delta=",delta)
+    delta[0] = np.clip(delta[0],-linear_V_limit,linear_V_limit)
+    delta[1] = np.clip(delta[1],-linear_V_limit,linear_V_limit)
+    delta[2] = np.clip(delta[2],-angular_W_limit,angular_W_limit)
 
-    # Control Input to the robot
-    u = np.array([v_limited, omega_limited])
-    return u
+    return delta
