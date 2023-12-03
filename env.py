@@ -73,7 +73,7 @@ def main(screenshot=False):
     # Plot the results
     filtered_states = np.array(filtered_states)
     actual_states = np.vstack((start_config,goal_configs))
-    print(actual_states)
+    # print(actual_states)
     inputs = np.array(inputs)
     error = np.array(error)
     # for state in true_states:
@@ -86,12 +86,17 @@ def main(screenshot=False):
 
     plt.figure(1) # 2 rows, 1 column, first plot
     # plt.figure(figsize=(10, 6))
-    plt.plot(filtered_states[:, 0], filtered_states[:, 1], label='True Path', linestyle='--', marker='o')
-    plt.plot(actual_states[:,0], actual_states[:,1], linestyle='-', color='blue', marker='o', label='Lines')
+    plt.title("Robot Trajectory")
+    plt.plot(filtered_states[:, 0], filtered_states[:, 1], label='Kalman Path', linestyle='--', marker='o')
+    plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='blue', marker='o')
+    plt.legend()
     
     plt.figure(2)
-    plt.plot(inputs[:,0],linestyle='-',color='red')
-    plt.plot(inputs[:,1],linestyle='-',color='blue')
+    plt.title("Error between current position and target")
+    plt.plot(error,linestyle='-',color='red')
+    # plt.plot(error[:,1],label='Y axis',linestyle='-',color='blue')
+    # plt.plot(error[:,2],label='W axis',linestyle='-',color='blue')
+    plt.legend()
     plt.grid(True)
     plt.show()
     
