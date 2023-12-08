@@ -45,24 +45,15 @@ def calculate_environmental_error(environmental_factors):
     # This could include temperature, humidity, electromagnetic interference, etc.
     return environmental_error_value
 
-def getMeasuredPosition(robot):
-    print("robot:",robot)
-    pos,ori = p.getBasePositionAndOrientation(robot)
-    print("pos",pos)
-    print("ori",ori)
-    noisy_pos = np.array(pos) + np.random.normal(0, 1, 3)
-    # noisy_ori = np.array(ori) + np.random.normal(0,1,4)
-    # noisy_ori = p.getQuaternionFromEuler(noisy_ori)
-    # TO DO: implement for orientation
-    return noisy_pos
+
 
 
 def motion_planner_model(current_position, target_position):
     # Position: (x,y,theta)
     # Return linear and angular velocity of the robot
-    delta_position = (target_position - current_position)/dt
+    delta_position = (target_position - current_position)
     omega = (math.atan2(delta_position[1], delta_position[0]) + delta_position[2])/dt
-    v = np.sqrt(delta_position[0]**2 + delta_position[1]**2)
+    v = np.sqrt(delta_position[0]**2 + delta_position[1]**2)/dt
 
     return v,omega
 
@@ -141,15 +132,35 @@ def motion_planner(current_position, target_position):
     # print(actions)
     return trajectory, actions
 
-def velocity_model(current_position,target_position):
-    # Calculate the linear and angular velocity of the robot
-    v,omega = motion_planner_model(current_position,target_position)
-    v_limited = np.clip(v,-linear_V_limit,linear_V_limit)
-    omega_limited = np.clip(omega,-angular_W_limit,angular_W_limit)
+def velocity_model(omega_R,oomega_L):
+    wheel_radius = 0.1
+    wheel_base = 0.7
+    v = wheel_radius * (omega_R+oomega_L)
+    w = wheel_radius * (omega_R-oomega_L)/wheel_base
+    return [v,w]
 
-    # Control Input to the robot
-    u = np.array([v_limited, omega_limited])
-    return u
+def get_omegas(robot_id):
+    l_wheel_idx = 6
+    r_wheel_idx = 7
+
+    l_wheel_state = p.getJointState(robot_id,l_wheel_idx)
+    r_wheel_state = p.getJointState(robot_id,r_wheel_idx)
+
+    omega_l = l_wheel_state[1]
+    omega_r = r_wheel_state[1]
+
+    return omega_l,omega_r
+
+
+    # PASS current_position and target_position
+    # Calculate the linear and angular velocity of the robot
+    # v,omega = motion_planner_model(current_position,target_position)
+    # v_limited = np.clip(v,-linear_V_limit,linear_V_limit)
+    # omega_limited = np.clip(omega,-angular_W_limit,angular_W_limit)
+
+    # # Control Input to the robot
+    # u = np.array([v_limited, omega_limited])
+    # return u
 
 def predict_next_state(current_state,dt,v,omega):
     """
@@ -158,26 +169,70 @@ def predict_next_state(current_state,dt,v,omega):
     dt: small change in time/step
     v: linear velocity
     omega: angular velocity"""
+    # measured_pos,measured_= getMeasuredPosition(robot)
 
     x,y,theta = current_state
     d_theta = omega*dt
     theta_new = theta + d_theta
-    if (omega == 0):
-        # when the robot is moving in a straight line
-        d_x = v*dt*np.cos(theta)
-        d_y = v*dt*np.sin(theta)
-
+    if abs(omega) < 1e-6:
+            omega = 1e-6
+            d_x = v*dt*np.cos(theta)
+            d_y = v*dt*np.sin(theta)
     else:
         # when the robot is turning
         d_x = (v/omega)*(np.sin(theta_new)-np.sin(theta))
         d_y = (v/omega)*(-np.cos(theta_new)+np.cos(theta))
 
+    theta_new = (theta_new + np.pi) % (2 * np.pi) - np.pi
     x_new = d_x + x
     y_new = d_y + y
 
     next_state = np.array([x_new,y_new,theta_new])
 
     return next_state
+
+# def calculate_std(robot,previous_pose):
+#     measured_pos,measured_ori = getMeasuredPosition(robot)
+
+#     k1 = 0.01
+#     k2 = 0.1
+#     k3 = 0.001
+#     k4 = 0.0002
+#     dx = measured_pos[0] - previous_pose[0]
+#     dy = measured_pos[1] - previous_pose[1]
+#     dt = measured_ori - previous_pose[2]
+
+#     alpha = angle_diff(np.arctan2(dy,dx),previous_pose[2])
+
+#     direction = 1
+#     # when the robot is oriented toward the next state
+#     if(abs(alpha)>np.pi/2):
+#         alpha = angle_diff(np.pi,alpha)
+#         direction = -1
+
+#     beta = angle_diff(dt,alpha)
+#     dist = direction*np.sqrt(dx**2 + dy**2)
+
+#     # check if the robot has moved
+#     if(abs(dist)>0.001 or (abs(dt)>0.001)):
+#         if(abs(dist)>0.005):
+#             has_moved = True
+#         if(abs(dt)>0.003):
+#             has_rot = True
+
+#     rot1_std = k1 * abs(alpha) + k3*abs(dist)
+#     trans_std = k2 * abs(dist) + k3*abs(alpha) + k4 *abs(beta)
+#     rot2_std = k1 * abs(beta) + k3*abs(dist)
+
+#     return rot1_std,rot2_std,trans_std
+
+# START HERE
+def getMeasuredPosition(robot):
+    pos,ori = p.getBasePositionAndOrientation(robot)
+    noisy_pos = np.array(pos)[:2] + np.random.normal(0, 1, 2)
+    noisy_ori = np.array(ori)[2] + np.random.normal(0, 1, 1)
+    return np.concatenate((noisy_pos,noisy_ori))
+
 
 def angle_diff(ori1,ori2):
     diff = ori1-ori2
