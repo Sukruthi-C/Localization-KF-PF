@@ -57,6 +57,10 @@ def main(screenshot=False):
 
     i=0
     errors = []
+
+    particle_pos = []
+    estimate_pos = []
+    actual_pos = []
     for step in range (num_steps):
         # velocity model is wrong
         omega_l,omega_r = get_omegas(robots['pr2'])
@@ -66,13 +70,34 @@ def main(screenshot=False):
         estimate = pf.estimate_state()
         current_state = trajectory[i%len(trajectory)]
         i+=1
-        error = pf.calculate_error(estimate,current_state)
-        errors.append(error)
+        erro_pos,error_ori = pf.calculate_error(estimate,current_state)
+        errors.append(erro_pos)
+        particle_pos.append(pf.particles.copy())  # Copy the particle positions
+        estimate_pos.append(estimate)  # Append the estimated state
+        actual_pos.append(current_state)
 
-    plt.plot(errors)
+    # Plotting the trajectory and particles
+    plt.figure(figsize=(10, 6))
+    plt.title("Particle Filter: Robot Trajectory and Particle Spread")
+    plt.plot(trajectory[:, 0], trajectory[:, 1], 'ro-', label='True Path')
+
+    # Plot all particles at each step (consider subsampling if too dense)
+    for particles in particle_pos:
+        plt.scatter([p[0] for p in particles], [p[1] for p in particles], s=1, alpha=0.3, color='gray')
+
+    plt.plot([e[0] for e in estimate_pos], [e[1] for e in estimate_pos], 'bo-', label='Estimated Path')
+    plt.legend()
+    plt.xlabel('X Position')
+    plt.ylabel('Y Position')
+
+    # Plotting the error
+    plt.figure(figsize=(10, 6))
+    plt.title("Particle Filter: Localization Error over Time")
+    plt.plot(errors, label='Localization Error')
     plt.xlabel('Step')
     plt.ylabel('Error')
-    plt.title('Localization Error over Time')
+    plt.legend()
+
     plt.show()
 
 
