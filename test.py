@@ -2,21 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Parameters
-num_particles = 100
+num_particles = 1000
 dt = 0.1  # Time step
 motion_noise = 0.01
-measurement_noise = 1
+measurement_noise = 0.1
 
 # Function to update particle positions based on control inputs
 def motion_model(particles, control):
-    particles[:, 0] += control[0] * np.cos(particles[:, 2]) * dt  # Update x
-    particles[:, 1] += control[1] * np.sin(particles[:, 2]) * dt  # Update y
-    particles[:, 2] += control[2] * dt  # Update orientation
+    particles[:, 0] += control[0] * dt  # Update x
+    particles[:, 1] += control[1] * dt  # Update y
+    # particles[:, 2] += control[2] * dt  # Update orientation
 
     # Add motion noise
     particles[:, 0] += np.random.normal(0, motion_noise, num_particles)
     particles[:, 1] += np.random.normal(0, motion_noise, num_particles)
-    particles[:, 2] += np.random.normal(0, motion_noise, num_particles)
+    # particles[:, 2] += np.random.normal(0, motion_noise, num_particles)
 
     return particles
 
@@ -61,13 +61,13 @@ def plot_results(true_trajectory, estimated_trajectory, particles, waypoints):
 # Main localization loop
 def particle_filter_localization(num_steps, waypoints):
     # Initialize particles randomly
-    particles = np.random.rand(num_particles, 3) * np.array([0,0,0])
+    particles = np.random.rand(num_particles, 2) * np.array([0,0])
 
     # True initial pose (for comparison)
     true_pose = np.array([0, 0, 0])
 
     # Arrays to store true and estimated trajectories
-    true_trajectory = np.zeros((num_steps, 3))
+    true_trajectory = np.zeros((num_steps, 2))
     estimated_trajectory = []#np.zeros((num_steps, 3))
     for current_waypoint in waypoints:
         # print(current_waypoint)
@@ -80,11 +80,10 @@ def particle_filter_localization(num_steps, waypoints):
             control = np.array([
                 current_waypoint[0] - true_pose[0],  # Vx
                 current_waypoint[1] - true_pose[1],  # Vy
-                np.arctan2(current_waypoint[1] - true_pose[1], current_waypoint[0] - true_pose[0]) - true_pose[2]  # w
             ])
             # print(f"{control=}   --  ")
             # Normalize orientation difference to the range [-pi, pi]
-            control[2] = np.arctan2(np.sin(control[2]), np.cos(control[2]))
+            # control[2] = np.arctan2(np.sin(control[2]), np.cos(control[2]))
             print(f"{control=}")
         
             # Move particles according to motion model
@@ -97,7 +96,7 @@ def particle_filter_localization(num_steps, waypoints):
             # Update particle weights based on measurement model
             weights = measurement_model(particles, measurement)
             # print("Particles and weights\n")
-            print(f"{particles=}\n{np.sort(weights)=}")
+            # print(f"{particles=}\n{np.sort(weights)=}")
             # for part in (particles,weights):
             #     print(part)
 
@@ -110,7 +109,7 @@ def particle_filter_localization(num_steps, waypoints):
             estimated_pose = np.mean(particles, axis=0)
 
             # Store true and estimated poses
-            true_trajectory[step] = true_pose
+            true_trajectory[step] = true_pose[0:2]
             # estimated_trajectory[step] = estimated_pose
             estimated_trajectory.append(estimated_pose)
 
@@ -121,13 +120,14 @@ def particle_filter_localization(num_steps, waypoints):
             # true_pose[1] += control[1] * np.sin(particles[:, 2]) * dt  # Update y
             # true_pose[:, 2] += control[2] * dt  # Update orientation
             # print(f"{estimated_pose=}\n{current_waypoint=}")
+            print(f"{estimated_pose=}")
             print(np.linalg.norm(estimated_pose[0:2] - current_waypoint))
-            if np.linalg.norm(estimated_pose[0:2] - current_waypoint) < 0.5:                
+            if np.linalg.norm(estimated_pose[0:2] - current_waypoint) < 0.01:                
                 break
         print("\n\n *************************** \n \n")
     
     estimated_trajectory = np.array(estimated_trajectory)
-    print(estimated_trajectory)
+    # print(estimated_trajectory)
             
 
     # Plot the results
