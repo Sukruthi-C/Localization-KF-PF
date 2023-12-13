@@ -1,4 +1,4 @@
-#HEADER h1 Advanced Robotic Localization Project
+#header H1 Advanced Robotic Localization Project
 About:
 This project focuses on advanced localization techniques in robotics, leveraging the PR2 robot in a PyBullet simulation environment. It implements and evaluates two prominent localization algorithms: the Kalman Filter (KF) and the Particle Filter (PF). These algorithms are used to estimate the robot's position as it navigates through a complex path with obstacles. The project stands out in its comparative analysis of KF and PF under various scenarios, including cases where the KF may struggle while the PF excels. The next phase of the project will involve using these algorithms to guide the PR2 robot's movement in the PyBullet environment. 
 
