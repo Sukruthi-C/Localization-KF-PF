@@ -11,7 +11,7 @@ class Particle_Filter():
         self.measurement_noise = 0.1
         self.desired_speed = 0.7
 
-    def motion_model(self,particles, control):
+    def predict_model(self,particles, control):
         particles[:, 0] += control[0] * self.dt  # Update x
         particles[:, 1] += control[1] * self.dt  # Update y
 
@@ -84,7 +84,7 @@ class Particle_Filter():
 
             
     # plotting no of steps to reach waypoint
-    def plot_step_way(self,waypoints,steps_data):
+    def plot_steps_to_waypoint(self,waypoints,steps_data):
         waypoint_indices = np.arange(len(waypoints))  # Use indices for waypoints
         for speed, steps in steps_data.items():
             plt.plot(waypoint_indices, steps, marker='o', label=f'Speed {speed}')
@@ -97,7 +97,7 @@ class Particle_Filter():
         plt.grid(True)
         plt.show()
 
-    # Main localization loop
+
     def particle_filter_localization(self,num_steps, waypoints):
         # Initialize particles randomly
         particles = np.random.rand(self.num_particles, 2) * np.array([0,0])
@@ -126,7 +126,7 @@ class Particle_Filter():
 
             
                 # Move particles according to motion model
-                particles = self.motion_model(particles, control)
+                particles = self.predict_model(particles, control)
                 # print("particles from func:",particles)
 
                 # Simulate measurement (replace with your actual sensor measurements)
@@ -158,9 +158,6 @@ class Particle_Filter():
 
                 # why is true pose = estimated pose?
                 true_pose = estimated_pose
-
-                
-
                 if np.linalg.norm(estimated_pose[0:2] - current_waypoint) < 0.01:  
                     key_module['end'] = particles
                     break
@@ -179,7 +176,6 @@ class Particle_Filter():
     
 
 def main():
-
     waypoints = [[2, 0],[2, 2],[0, 2]]
     noise_levels = [0.01, 0.05, 0.1]
     # Run the particle filter localization for a specified number of steps
@@ -198,7 +194,7 @@ def main():
     # p.plot_diff_speed(all_errors)
     # p.plot_particle_distribution(desired_speeds,all_distribution)
     waypoints = np.array(waypoints)
-    p.plot_step_way(waypoints,all_steps)
+    p.plot_steps_to_waypoint(waypoints,all_steps)
 
 
 if __name__ == '__main__':

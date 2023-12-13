@@ -10,8 +10,8 @@ This project focuses on advanced localization techniques in robotics, leveraging
 
 ### Development Environment Requirements
 1. **Python 3.8+**
-2. **NumPy**
-3. **Matplotlib**
+2. **NumPy 1.1+**
+3. **Matplotlib 3.4+**
 4. **PyBullet**
 Additional dependencies listed in requirements.txt.
 
@@ -19,7 +19,7 @@ Additional dependencies listed in requirements.txt.
 1. To get started, clone the repository.
 2. Install dependencies: 
     pip install -r requirements.txt.
-3. Run the main script: python main.py.
+3. Run the main script: python3 main.py.
 
 ### Python official documentation
 1. NumPy documentation - https://numpy.org/doc/
