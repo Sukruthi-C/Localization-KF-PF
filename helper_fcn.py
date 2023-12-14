@@ -2,6 +2,7 @@
 import numpy as np
 import math
 import pybullet as p
+import matplotlib.pyplot as plt
 
 # Constants
 R = np.diag([0.1, 0.1])  # Measurement noise covariance
@@ -106,3 +107,68 @@ def velocity_model(omega_R,oomega_L):
     w = wheel_radius * (omega_R-oomega_L)/wheel_base
     return [v,w]
 
+ # plotting trajectory and particles
+def plot_results(self,true_trajectory, estimated_trajectory, particles, waypoints):
+    plt.figure(figsize=(10, 6))
+    plt.plot(estimated_trajectory[:, 0], estimated_trajectory[:, 1], label='Estimated Trajectory', color='blue')
+    plt.scatter(particles[:, 0], particles[:, 1], s=5, color='red', alpha=0.5, label='Particle Cloud')
+    plt.scatter(waypoints[:, 0], waypoints[:, 1], marker='X', s=100, color='black', label='Waypoints')
+    plt.title('Particle Filter Localization with Waypoints')
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# plotting trajectories for different speeds
+def plot_diff_speed(self,all_errors):
+    plt.figure(figsize=(12, 6))
+
+    for speed, errors in all_errors.items():
+        plt.plot(errors, label=f"Speed {speed} m/s")
+
+    plt.xlabel("Time Step")
+    plt.ylabel("Trajectory Error")
+    plt.title("Trajectory Error Over Time for Different Speeds")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# plotting particle distribution for each speed
+def plot_particle_distribution(self, speeds, all_distributions):
+    # Creating subplots for each key moment
+    fig, axes = plt.subplots(nrows=len(speeds), ncols=1, figsize=(15, 5 * len(speeds)))
+    fig.suptitle('Particle Distributions at Different Speeds')
+    colors = {'start': 'green', 'mid': 'blue', 'end': 'red'}
+    axes = np.array(axes).reshape(-1)
+
+    # Plotting the distributions
+    for i, speed in enumerate(speeds):
+        for moment in ['start', 'mid', 'end']:
+            particles = all_distributions[speed][moment]
+            if particles is not None:
+                axes[i].scatter(particles[:, 0], particles[:, 1], s=5, alpha=0.5, color=colors[moment], label=f"{moment.capitalize()} particles")
+        
+        axes[i].set_title(f'Speed {speed} m/s')
+        axes[i].set_xlabel('X-axis')
+        axes[i].set_ylabel('Y-axis')
+        axes[i].legend()
+        axes[i].grid(True)
+
+    # Show the plot after creating all subplots
+    plt.show()
+
+        
+# plotting no of steps to reach waypoint
+def plot_steps_to_waypoint(self,waypoints,steps_data):
+    waypoint_indices = np.arange(len(waypoints))  # Use indices for waypoints
+    for speed, steps in steps_data.items():
+        plt.plot(waypoint_indices, steps, marker='o', label=f'Speed {speed}')
+
+    plt.xlabel("Waypoint Index")
+    plt.ylabel("Steps to Reach Waypoint")
+    plt.title("Steps to Reach Waypoints for Different Speeds")
+    plt.xticks(waypoint_indices)  # Set x-ticks to waypoint indices
+    plt.legend()
+    plt.grid(True)
+    plt.show()
