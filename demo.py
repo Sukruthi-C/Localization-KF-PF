@@ -1,14 +1,13 @@
 # Imports
 import numpy as np
 from utils import get_collision_fn_PR2, load_env, execute_trajectory, draw_sphere_marker
-from pybullet_tools.utils import connect, disconnect, get_joint_positions, wait_if_gui, set_joint_positions, joint_from_name, get_link_pose, link_from_name,get_joint_info,get_num_joints
+from pybullet_tools.utils import connect, disconnect, get_joint_positions, wait_if_gui, set_joint_positions, joint_from_name, get_link_pose, link_from_name
 from pybullet_tools.pr2_utils import PR2_GROUPS
 import time
-import pybullet as p
-#########################
-import particle_filter_test
-from helper_fcn import velocity_model,get_omegas
+from filter import *
 import matplotlib.pyplot as plt
+#########################
+
 def main(screenshot=False):
     # initialize PyBullet
     connect(use_gui=True)
@@ -21,90 +20,93 @@ def main(screenshot=False):
     collision_fn = get_collision_fn_PR2(robots['pr2'], base_joints, list(obstacles.values()))
 
     start_config = np.array(get_joint_positions(robots['pr2'], base_joints))
-    goal_configs = np.array([-2.4,-0.4,np.pi])
-    
-    trajectory = np.array([[-2.4,-1.4,0],
+    # print(start_config)
+    goal_configs = np.array([[-2.4,-1.4,0],
                             [-2.4,-0.4,np.pi/2],
                             [-3.4,-0.4,np.pi]])
-    process_noise = np.array([0.001, 0.001, 0.001])  # Process noise (velocity, angular velocity, heading change)
-    measurement_noise = np.array([0.0001, 0.0001, 0.0001])  # Measurement noise covariance (x, y,theta)
-    num_steps = 100
-    pf = particle_filter_test.Particle_Filter()
-    pf.initialize_particles(start_config)
-    current_state = start_config
-    # print("enteruiung")
-    # # get joint indices of wheels
-    # num_joints = get_num_joints(robots['pr2'])
-    # print("num joints",num_joints)
-    # for joint_index in range (num_joints):
-    #     # print("num joints",num_joints)
-    #     joint_info = get_joint_info(robots['pr2'], joint_index)
-    #     # print("joint_info",joint_info)
-    #     joint_name = joint_info[1].decode('UTF-8')
-    #     # print("       oooooooooooooooo          ")
-    #     # print("joint name:",joint_name)
-    #     if 'fl_caster_l_wheel_joint' in joint_name:
-    #         left_wheel_joint_index = joint_index
-    #         print("Left Wheel Joint Index:", left_wheel_joint_index)
-    #         l_wheel_info = p.getJointInfo(robots['pr2'],6)
-    #         print("left wheel radius:",l_wheel_info[7])
+    initial_state = start_config  # Initial state (x, y, heading)
+    initial_covariance = np.diag([1, 1, 1])  # Initial covariance matrix
+    process_noise = [0.001, 0.001, 0.001]  # Process noise (velocity, angular velocity, heading change)
+    measurement_noise = np.diag([0.0001, 0.0001, 0.0001])  # Measurement noise covariance (x, y,theta)
+    # Create Kalman filter
+    kf = KalmanFilter(initial_state, initial_covariance, process_noise, measurement_noise)
 
-    #     if 'fl_caster_r_wheel_joint' in joint_name:
-    #         right_wheel_joint_index = joint_index
-    #         print("Right Wheel Joint Index:", right_wheel_joint_index)
-    #         r_wheel_info = p.getJointInfo(robots['pr2'],7)
-    #         print("left wheel radius:",r_wheel_info[7])
+    # Simulate robot motion and measurements
+    filtered_states = []
+    inputs = []
+    error = []
 
-    i=0
-    errors = []
+    for checkPoint in goal_configs:
+        # start = start_config # [-3.4 -1.4  0. ]
+        # _,actions = motion_planner(start, checkPoint)
+        # print(actions)
+        while True:
+            control_input = velocity_model(kf.state, checkPoint)
+            # print("kf.state=", kf.state)
+            # print("target=",checkPoint)
+            # print("Control Input=",control_input)
+            print("Error=",np.linalg.norm(kf.state - checkPoint))
+            # print("\n")
+            error.append(np.linalg.norm(kf.state - checkPoint))
+            if(np.linalg.norm(kf.state - checkPoint) < 0.05):
+                break
+            # print("*************************** \n")
+            # break
 
-    particle_pos = []
-    estimate_pos = []
-    actual_pos = []
-    for step in range (num_steps):
-        # velocity model is wrong
-        omega_l,omega_r = get_omegas(robots['pr2'])
-        control = velocity_model(omega_r,omega_l)
-        pf.predict_particles(current_state,control,robots['pr2'],measurement_noise)
-        pf.low_variance_resample()
-        estimate = pf.estimate_state()
-        current_state = trajectory[i%len(trajectory)]
-        i+=1
-        erro_pos,error_ori = pf.calculate_error(estimate,current_state)
-        errors.append(erro_pos)
-        particle_pos.append(pf.particles.copy())  # Copy the particle positions
-        estimate_pos.append(estimate)  # Append the estimated state
-        actual_pos.append(current_state)
+            filtered_states.append(kf.state)
+            kf.predict(control_input)
 
-    # Plotting the trajectory and particles
-    plt.figure(figsize=(10, 6))
-    plt.title("Particle Filter: Robot Trajectory and Particle Spread")
-    plt.plot(trajectory[:, 0], trajectory[:, 1], 'ro-', label='True Path')
+            # Simulate noisy measurements (true position with added noise)
+            # measurement_noise = np.random.normal(0, 0.1, 3)
+            noise = np.random.multivariate_normal([0, 0, 0], measurement_noise)
+            # print("Noise=",noise)
+            measurement = np.dot(np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]), kf.state) + noise
+            inputs.append(control_input)
+            # print(measurement)
 
-    # Plot all particles at each step (consider subsampling if too dense)
-    for particles in particle_pos:
-        plt.scatter([p[0] for p in particles], [p[1] for p in particles], s=1, alpha=0.3, color='gray')
+            # Update Kalman filter with measurements
+            kf.update(measurement)
+        # print("*****************************************************************************************\n")
+        # start = checkPoint
+        # break
+    
+    # Plot the results
+    filtered_states = np.array(filtered_states)
+    actual_states = np.vstack((start_config,goal_configs))
+    # print(actual_states)
+    inputs = np.array(inputs)
+    error = np.array(error)
+    # for state in true_states:
+    #     print(state)        
+    # print(trajectory)
+    draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+    draw_sphere_marker((-2.4,-1.4, 1), 0.06, (0, 1, 0, 1))
+    draw_sphere_marker((-2.4,-0.4, 1), 0.06, (0, 0, 1, 1))
+    
 
-    plt.plot([e[0] for e in estimate_pos], [e[1] for e in estimate_pos], 'bo-', label='Estimated Path')
+    plt.figure(1) # 2 rows, 1 column, first plot
+    # plt.figure(figsize=(10, 6))
+    plt.title("Robot Trajectory")
+    plt.plot(filtered_states[:, 0], filtered_states[:, 1], label='Kalman Path', linestyle='--', marker='o')
+    plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='blue', marker='o')
     plt.legend()
-    plt.xlabel('X Position')
-    plt.ylabel('Y Position')
-
-    # Plotting the error
-    plt.figure(figsize=(10, 6))
-    plt.title("Particle Filter: Localization Error over Time")
-    plt.plot(errors, label='Localization Error')
-    plt.xlabel('Step')
-    plt.ylabel('Error')
+    
+    plt.figure(2)
+    plt.title("Error between current position and target")
+    plt.plot(error,linestyle='-',color='red')
+    # plt.plot(error[:,1],label='Y axis',linestyle='-',color='blue')
+    # plt.plot(error[:,2],label='W axis',linestyle='-',color='blue')
     plt.legend()
-
+    plt.grid(True)
     plt.show()
+    
+    execute_trajectory(robots['pr2'], base_joints, filtered_states, sleep=0.2)
+    
+    # kalmanFilter_error = kalman_filter(start_config, goal_configs)
+    
 
-
-
-
-    # execute_trajectory(robots['pr2'], base_joints, np.array((trajectory)), sleep=0.1)
-
+    # time.sleep(1000)
+   
     # Keep graphics window opened
     wait_if_gui()
     disconnect()
