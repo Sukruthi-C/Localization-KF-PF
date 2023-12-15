@@ -14,52 +14,11 @@ def main(screenshot=False):
     robots = None
     obstacles = None
     print("********************************************************************")
-    print("**                 Select the environment                         **")
+    print("**                 Select the obstacle environment                **")
     print("*********************************************************************")
-    number = input("Enter a number between 1-3 (included)")
-
-    match int(number):
-        case 1:
-            # load robot and obstacle resources
-            connect(use_gui=True)
-            robots, obstacles = load_env('pr2_env1.json')
-            goal_configs = np.array([[-1.2,-1.4,0],
-                                [-1.2,1.3,0],
-                                [3.4, 1.3,0]])
-            # Waypoints
-            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
-            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((3.4, 1.3, 1), 0.06, (0, 0, 1, 1))
-        case 2:
-            connect(use_gui=True)
-            robots, obstacles = load_env('pr2_env2.json')
-            goal_configs = np.array([[-1.2,-1.4,0],
-                            [-1.2,1.3,0],
-                            [-3.4, 2.5,0]])
-            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
-            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-3.4, 2.5, 1), 0.06, (0, 0, 1, 1))
-
-        case 3:
-            connect(use_gui=True)
-            robots, obstacles = load_env('pr2_env3.json')
-            goal_configs = np.array([[-1.2,-1.4,0],
-                            [-1.2,1.3,0],
-                            [0.5, 1.3,0],
-                            [0.5,-2.0,0],
-                            [3.0,-2.0,0],
-                            [3.5,1.5,0]])
-            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
-            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((0.8, -2.0, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((3.0,-2.0, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((3.2, 1.5, 1), 0.06, (0, 0, 1, 1))
-        case _:
-            print("Not a valid input")
-            return
+    number = input("Enter a number between 1-4 (included)")
+    robots,obstacles,goal_configs = create_obs_env(number)
+    
 
     # define active DoFs
     base_joints = [joint_from_name(robots['pr2'], name) for name in PR2_GROUPS['base']]
@@ -198,6 +157,77 @@ def main(screenshot=False):
     # Keep graphics window opened
     wait_if_gui()
     disconnect()
+
+def create_obs_env(number):
+    match int(number):
+        case 1:
+            # load robot and obstacle resources
+            connect(use_gui=True)
+            robots, obstacles = load_env('pr2_env1.json')
+            goal_configs = np.array([[-1.2,-1.4,0],
+                                [-1.2,1.3,0],
+                                [3.4, 1.3,0]])
+            # Waypoints
+            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((3.4, 1.3, 1), 0.06, (0, 0, 1, 1))
+            return robots,obstacles,goal_configs
+        case 2:
+            connect(use_gui=True)
+            robots, obstacles = load_env('pr2_env2.json')
+            goal_configs = np.array([[-1.2,-1.4,0],
+                            [-1.2,1.3,0],
+                            [-3.4, 2.5,0]])
+            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-3.4, 2.5, 1), 0.06, (0, 0, 1, 1))
+            return robots,obstacles,goal_configs
+
+        case 3:
+            connect(use_gui=True)
+            robots, obstacles = load_env('pr2_env3.json')
+            goal_configs = np.array([[-1.2,-1.4,0],
+                            [-1.2,1.3,0],
+                            [0.5, 1.3,0],
+                            [0.5,-2.0,0],
+                            [3.0,-2.0,0],
+                            [3.5,1.5,0]])
+            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((0.8, -2.0, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((3.0,-2.0, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((3.2, 1.5, 1), 0.06, (0, 0, 1, 1))
+            return robots,obstacles,goal_configs
+        case 4:
+            connect(use_gui=True)
+            robots, obstacles = load_env('pr2_env4.json')
+            goal_configs = np.array([[-1.5,-1.6,0],
+                            [-1.5,-0.5,0],
+                            [-3.3, 0.0,0],
+                            [-3.3,1.5,0],
+                            [0.5,1.5,0],
+                            [0.5,0.6,0],
+                            [-0.5,-0.7,0],
+                            [0.3,-1.7,0],
+                            [3.4,-1.7,0]])
+            draw_sphere_marker((-3.4,-1.6, 1), 0.06, (1, 0, 0, 1))
+            draw_sphere_marker((-1.5,-1.6, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-1.5,-0.5, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-3.3, 0.0, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-3.3,1.5, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((0.5, 1.5, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((0.5, 0.6, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-0.5, -0.7, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((0.3, -1.7, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((3.4, -1.7, 1), 0.06, (0, 0, 1, 1))
+            return robots,obstacles,goal_configs
+        case _:
+            print("Not a valid input")
+            return
+
 
 if __name__ == '__main__':
     main()
