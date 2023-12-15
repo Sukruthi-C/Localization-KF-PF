@@ -9,9 +9,10 @@ class Particle_Filter():
     def __init__(self):
         # Parameters
         self.num_particles = 1000
-        self.dt = 0.5  # Time step
+        self.dt = 0.1  # Time step
         self.motion_noise = 0.01
         self.measurement_noise = 0.1
+        self.velocityLimit = 4
 
     def motion_model(self,particles, control):
         particles[:, 0] += control[0] * self.dt  # Update x
