@@ -4,7 +4,8 @@ from utils import get_collision_fn_PR2, load_env, execute_trajectory, draw_spher
 from pybullet_tools.utils import connect, disconnect, get_joint_positions, wait_if_gui, set_joint_positions, joint_from_name, get_link_pose, link_from_name
 from pybullet_tools.pr2_utils import PR2_GROUPS
 import time
-from kalman_Filter import *
+from kalman_Filter import * 
+from particle_filter import *
 import matplotlib.pyplot as plt
 #########################
 
@@ -32,9 +33,6 @@ def main(screenshot=False):
     draw_sphere_marker((-1.2,1.2, 1), 0.06, (0, 0, 1, 1))
     draw_sphere_marker((3.4, 1.2, 1), 0.06, (0, 0, 1, 1))
 
-    ##############################################################################################################
-    ###########################                     KALMAN FILTER                      ###########################    
-    ##############################################################################################################
     
     initial_state = start_config  # Initial state (x, y, heading)
     initial_covariance = np.diag([1, 1, 1])  # Initial covariance matrix
@@ -44,23 +42,37 @@ def main(screenshot=False):
     # Create Kalman filter
     kf = KalmanFilter(initial_state, initial_covariance, process_noise, measurement_noise,0.01,0.1)
 
+
+    # Particle filter
+    pf = Particle_Filter()
+    particles = np.random.rand(pf.num_particles, 2) * np.array([-3.4,-1.4])
+
     # Store the computed trajectory
-    filtered_states = []
-    error = []
+    kf_states = []
+    kf_error = []
+    num_steps = 1000
+    pf_states = []
+    true_trajectory = np.zeros((num_steps, 2))
+    pf_error = []
 
     # Compute trajectory for all the waypoints
     prevPoint = start_config
+    true_pose = start_config
     for checkPoint in goal_configs:
+
+        ##############################################################################################################
+        ###########################                     KALMAN FILTER                      ###########################    
+        ##############################################################################################################
         
         # Execute till the robot converges to the target point.
         while True:
             control_input = kf.velocity_model(kf.state, checkPoint)
-            error.append(kf.calculateError(kf.state, prevPoint, checkPoint))
+            kf_error.append(kf.calculateError(kf.state, prevPoint, checkPoint))
             
             if(np.linalg.norm(kf.state - checkPoint) < 0.05):
                 break
             
-            filtered_states.append(kf.state)
+            kf_states.append(kf.state)
 
             # Kalman Filter Prediction step.
             kf.predict(control_input)
@@ -71,29 +83,63 @@ def main(screenshot=False):
             
             # Update Kalman filter with measurements
             kf.update(measurement)
+
+        ##############################################################################################################
+        ###########################                     PARTICLE FILTER                      ######################### 
+        ##############################################################################################################
+
+        for step in range(num_steps):
+            control = np.array([
+                    (checkPoint[0] - true_pose[0]),  # Vx
+                    (checkPoint[1] - true_pose[1]),  # Vy
+                ])
+
+            particles = pf.motion_model(particles, control)
+            measurement = np.array([true_pose[0] + np.random.normal(0, pf.measurement_noise),
+                                    true_pose[1] + np.random.normal(0, pf.measurement_noise)])
+
+            # Update particle weights based on measurement model
+            weights = pf.measurement_model(particles, measurement)
+            indices = np.random.choice(np.arange(pf.num_particles), pf.num_particles, p=weights)
+            particles = particles[indices]
+
+            # Estimate the robot's pose based on particle positions (mean or weighted mean)
+            estimated_pose = np.mean(particles, axis=0)
+            # Store true and estimated poses
+            true_trajectory[step] = true_pose[0:2]
+            pf_states.append(estimated_pose)
+            pf_error.append(pf.calculateError(estimated_pose,true_pose,checkPoint))
+            true_pose = estimated_pose
+            if np.linalg.norm(estimated_pose[0:2] - checkPoint[0:2]) < 0.01:                
+                break
+
         
         prevPoint = checkPoint
     
     # Plot the results
-    filtered_states = np.array(filtered_states)
+    kf_states = np.array(kf_states)
     actual_states = np.vstack((start_config,goal_configs))
-    error = np.array(error)
+    kf_error = np.array(kf_error)
+    pf_states = np.array(pf_states)
+    pf_error = np.array(pf_error)
     
 
     plt.figure(1)
     plt.title("Robot Trajectory")
-    plt.plot(filtered_states[:, 0], filtered_states[:, 1], label='Kalman Path', linestyle='--', marker='o')
-    plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='blue', marker='o')
+    plt.plot(kf_states[:, 0], kf_states[:, 1], label='Kalman Filter Path', linestyle='--',color = 'green', marker='o')
+    plt.plot(pf_states[:, 0], pf_states[:, 1], label='Particle Filter Path', linestyle='--',color = 'blue', marker='o')
+    plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='red', marker='o')
     plt.legend()
     
     plt.figure(2)
-    plt.title("Error between current position and target")
-    plt.plot(error,linestyle='-',color='red')
+    plt.title("kf_error between current position and target")
+    plt.plot(kf_error,linestyle='-',color='red')
+    plt.plot(pf_error,linestyle='-',color='blue')
     plt.legend()
     plt.grid(True)
     plt.show()
     
-    execute_trajectory(robots['pr2'], base_joints, filtered_states, sleep=0.2)
+    execute_trajectory(robots['pr2'], base_joints, pf_states, sleep=0.2)
     
 
 
