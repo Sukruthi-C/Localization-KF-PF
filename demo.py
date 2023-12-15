@@ -45,7 +45,6 @@ def main(screenshot=False):
 
     # Particle filter
     pf = Particle_Filter()
-    # particles = np.random.rand(pf.num_particles, 2) * np.array([-3.4,-1.4])
     particles = np.random.multivariate_normal(np.array([0,0,0]),np.diag([0.01,0.01,0.01]),size=pf.num_particles) + np.array([-3.4,-1.4,0])
 
     # Store the computed trajectory
@@ -94,8 +93,12 @@ def main(screenshot=False):
         for step in range(num_steps):
             # Given state xt and control input ut, predict state xt+1
             particles = pf.predict(checkPoint,true_pose,particles)
+
             # update based on measurement model
-            particles,weights = pf.updateWeights(true_pose,particles)
+            weights = pf.updateWeights(true_pose,particles)
+
+            # resampling
+            particles = pf.resample(weights,particles)
 
             # estimated state xt+1 
             estimated_pose = np.mean(particles, axis=0)
