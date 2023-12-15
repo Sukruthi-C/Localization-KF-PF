@@ -92,41 +92,31 @@ def main(screenshot=False):
         ##############################################################################################################
 
         for step in range(num_steps):
-            control = np.array([
-                    (checkPoint[0] - true_pose[0])/pf.dt,  # Vx
-                    (checkPoint[1] - true_pose[1])/pf.dt,  # Vy
-                    (checkPoint[2] - true_pose[2])/pf.dt,  # w
-                ])
-            control[0:2] = np.clip(control[0:2],-pf.velocityLimit,pf.velocityLimit)
-            # control[2] = np.clip(control[2],-pf.velocityLimit,pf.velocityLimit)
+            # Given state xt and control input ut, predict state xt+1
+            particles = pf.predict(checkPoint,true_pose,particles)
+            # update based on measurement model
+            particles,weights = pf.updateWeights(true_pose,particles)
 
-            particles = pf.motion_model(particles, control)
-            measurement = np.array([true_pose[0] + np.random.normal(0, pf.measurement_noise),
-                                    true_pose[1] + np.random.normal(0, pf.measurement_noise),
-                                    true_pose[2] + np.random.normal(0, pf.measurement_noise)])
-
-            # Update particle weights based on measurement model
-            weights = pf.measurement_model(particles, measurement)
-            indices = np.random.choice(np.arange(pf.num_particles), pf.num_particles, p=weights)
-            particles = particles[indices]
-
-            # Estimate the robot's pose based on particle positions (mean or weighted mean)
+            # estimated state xt+1 
             estimated_pose = np.mean(particles, axis=0)
-            # Store true and estimated poses
             true_trajectory[step] = true_pose
-            pf_states.append(estimated_pose)
-            pf_error.append(pf.calculateError(estimated_pose,true_pose,checkPoint))
 
+            # for plotting 
             weighted_mean = np.sum(particles.T*weights,axis=1)/np.sum(weights)
             cov_matrix = np.zeros((particles.shape[1],particles.shape[1]))
-            if step%5==0:
+
+            if step%3==0:
                 for i in range (particles.shape[0]):
                     diff = (particles[i]-weighted_mean).reshape(-1,1)
                     cov_matrix +=weights[i]*(diff@diff.T)
                 cov_matrix /=np.sum(weights)
                 plot_cov(estimated_pose[:2],cov_matrix,ax)
 
+            pf_states.append(estimated_pose)
+            pf_error.append(pf.calculateError(estimated_pose,true_pose,checkPoint))
             true_pose = estimated_pose
+
+            # estimated state is close to next state
             if np.linalg.norm(estimated_pose[0:2] - checkPoint[0:2]) < 0.05:                
                 break
 
@@ -147,9 +137,9 @@ def main(screenshot=False):
     
     plt.figure(1)
     plt.title("Particle Distribution")
-    plt.plot(pf_states[:,0],pf_states[:,1],label='True Path',linestyle='-',color='blue')
-    plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='red')
-    # plt.plot(kf_states[:, 0], kf_states[:, 1], label='Kalman Filter Path', linestyle='--',color = 'green')
+    plt.plot(pf_states[:,0],pf_states[:,1],label='Particle Filter Path',linestyle='-',color='blue')
+    plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle=':', color='red')
+    plt.plot(kf_states[:, 0], kf_states[:, 1], label='Kalman Filter Path', linestyle='--',color = 'green')
     plt.legend()
 
     plt.figure(2)
@@ -160,7 +150,7 @@ def main(screenshot=False):
     plt.legend()
     
     plt.figure(3)
-    plt.title("kf_error between current position and target")
+    plt.title("Error between current position and target")
     plt.plot(kf_error,linestyle='-',color='red')
     plt.plot(pf_error,linestyle='-',color='blue')
     plt.legend()
@@ -168,12 +158,9 @@ def main(screenshot=False):
     plt.show()
 
     plt.ioff()
-    
+    time.sleep(5)
     execute_trajectory(robots['pr2'], base_joints, pf_states, sleep=0.2)
     
-
-
-
     # Keep graphics window opened
     wait_if_gui()
     disconnect()
