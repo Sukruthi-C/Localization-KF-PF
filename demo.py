@@ -54,8 +54,8 @@ def main(screenshot=False):
             draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
             draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
             draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((0.8, -1.6, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((3.0,-1.6, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((0.8, -2.0, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((3.0,-2.0, 1), 0.06, (0, 0, 1, 1))
             draw_sphere_marker((3.2, 1.5, 1), 0.06, (0, 0, 1, 1))
         case _:
             print("Not a valid input")
