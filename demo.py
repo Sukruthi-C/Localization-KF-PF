@@ -45,13 +45,14 @@ def main(screenshot=False):
 
     # Particle filter
     pf = Particle_Filter()
-    particles = np.random.rand(pf.num_particles, 2) * np.array([-3.4,-1.4])
+    # particles = np.random.rand(pf.num_particles, 2) * np.array([-3.4,-1.4])
+    particles = np.ones((pf.num_particles, 2)) * np.array([-3.4,-1.4])
 
     # Store the computed trajectory
     kf_states = []
     kf_error = []
     num_steps = 1000
-    pf_states = []
+    pf_states = [np.mean(particles, axis=0)]
     true_trajectory = np.zeros((num_steps, 2))
     pf_error = []
 
@@ -90,9 +91,10 @@ def main(screenshot=False):
 
         for step in range(num_steps):
             control = np.array([
-                    (checkPoint[0] - true_pose[0]),  # Vx
-                    (checkPoint[1] - true_pose[1]),  # Vy
+                    (checkPoint[0] - true_pose[0])/pf.dt,  # Vx
+                    (checkPoint[1] - true_pose[1])/pf.dt,  # Vy
                 ])
+            control = np.clip(control,-pf.velocityLimit,pf.velocityLimit)
 
             particles = pf.motion_model(particles, control)
             measurement = np.array([true_pose[0] + np.random.normal(0, pf.measurement_noise),
@@ -127,8 +129,8 @@ def main(screenshot=False):
     plt.figure(1)
     plt.title("Robot Trajectory")
     plt.plot(kf_states[:, 0], kf_states[:, 1], label='Kalman Filter Path', linestyle='--',color = 'green', marker='o')
-    plt.plot(pf_states[:, 0], pf_states[:, 1], label='Particle Filter Path', linestyle='--',color = 'blue', marker='o')
     plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='red', marker='o')
+    plt.plot(pf_states[:, 0], pf_states[:, 1], label='Particle Filter Path', linestyle='--',color = 'blue', marker='o')
     plt.legend()
     
     plt.figure(2)
