@@ -13,7 +13,7 @@ def main(screenshot=False):
     # initialize PyBullet
     connect(use_gui=True)
     # load robot and obstacle resources
-    robots, obstacles = load_env('pr2doorway.json')
+    robots, obstacles = load_env('pr2_env1.json')
 
     # define active DoFs
     base_joints = [joint_from_name(robots['pr2'], name) for name in PR2_GROUPS['base']]
@@ -23,15 +23,14 @@ def main(screenshot=False):
     start_config = np.array(get_joint_positions(robots['pr2'], base_joints))
     print(start_config)
     goal_configs = np.array([[-1.2,-1.4,0],
-                            [-1.2,1.2,0],
-                            [3.4, 1.2,0]])
-    
+                            [-1.2,1.3,0],
+                            [3.4, 1.3,0]])
     
     # Waypoints
     draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
-    draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 1, 0, 1))
-    draw_sphere_marker((-1.2,1.2, 1), 0.06, (0, 0, 1, 1))
-    draw_sphere_marker((3.4, 1.2, 1), 0.06, (0, 0, 1, 1))
+    draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+    draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+    draw_sphere_marker((3.4, 1.3, 1), 0.06, (0, 0, 1, 1))
 
     
     initial_state = start_config  # Initial state (x, y, heading)
@@ -120,6 +119,11 @@ def main(screenshot=False):
 
         
         prevPoint = checkPoint
+    
+    for pose in kf_states:
+        if(collision_fn(pose)):
+            print("WALL COLLISION")
+            break
     
     # Plot the results
     kf_states = np.array(kf_states)
