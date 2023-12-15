@@ -46,7 +46,7 @@ def main(screenshot=False):
     # Particle filter
     pf = Particle_Filter()
     # particles = np.random.rand(pf.num_particles, 2) * np.array([-3.4,-1.4])
-    particles = np.ones((pf.num_particles, 3)) * np.array([-3.4,-1.4,0])
+    particles = np.random.multivariate_normal(np.array([0,0,0]),np.diag([0.01,0.01,0.01]),size=pf.num_particles) + np.array([-3.4,-1.4,0])
 
     # Store the computed trajectory
     kf_states = []
@@ -115,7 +115,7 @@ def main(screenshot=False):
             pf_states.append(estimated_pose)
             pf_error.append(pf.calculateError(estimated_pose,true_pose,checkPoint))
             true_pose = estimated_pose
-            if np.linalg.norm(estimated_pose - checkPoint) < 0.01:                
+            if np.linalg.norm(estimated_pose[0:2] - checkPoint[0:2]) < 0.05:                
                 break
 
         

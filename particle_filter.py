@@ -17,9 +17,10 @@ class Particle_Filter():
     def motion_model(self,particles, control):
         particles[:, 0] += control[0] * self.dt  # Update x
         particles[:, 1] += control[1] * self.dt  # Update y
+        particles[:, 2] += control[2] * self.dt  # Update w
         # Add motion noise
-        particles[:, 0] += np.random.normal(0, self.motion_noise, self.num_particles)
-        particles[:, 1] += np.random.normal(0, self.motion_noise, self.num_particles)
+        particles += np.random.multivariate_normal(np.array([0,0,0]),np.diag([0.001,0.001,0.001]),size=self.num_particles)
+        # particles[:, 1] += np.random.normal(0, self.motion_noise, self.num_particles)
 
         return particles
     
