@@ -36,7 +36,7 @@ class Particle_Filter():
 
     def measurement_model(self,particles, measurement):
         # Simulated measurement model (replace with your actual sensor model)
-        expected_measurement = np.array([particles[:, 0], particles[:, 1]])
+        expected_measurement = np.array([particles[:, 0], particles[:, 1], particles[:,2]])
 
         # Calculate likelihood
         weights = np.exp(-0.5 * np.sum((expected_measurement.T - measurement)**2, axis=1) / self.measurement_noise**2)
