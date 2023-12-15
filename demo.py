@@ -7,6 +7,7 @@ import time
 from kalman_Filter import * 
 from particle_filter import *
 import matplotlib.pyplot as plt
+from helper_fcn import plot_cov
 #########################
 
 def main(screenshot=False):
@@ -58,6 +59,8 @@ def main(screenshot=False):
     # Compute trajectory for all the waypoints
     prevPoint = start_config
     true_pose = start_config
+    ax = plt.gca()
+    plt.ion()
     for checkPoint in goal_configs:
 
         ##############################################################################################################
@@ -113,6 +116,16 @@ def main(screenshot=False):
             true_trajectory[step] = true_pose
             pf_states.append(estimated_pose)
             pf_error.append(pf.calculateError(estimated_pose,true_pose,checkPoint))
+
+            weighted_mean = np.sum(particles.T*weights,axis=1)/np.sum(weights)
+            cov_matrix = np.zeros((particles.shape[1],particles.shape[1]))
+            if step%5==0:
+                for i in range (particles.shape[0]):
+                    diff = (particles[i]-weighted_mean).reshape(-1,1)
+                    cov_matrix +=weights[i]*(diff@diff.T)
+                cov_matrix /=np.sum(weights)
+                plot_cov(estimated_pose[:2],cov_matrix,ax)
+
             true_pose = estimated_pose
             if np.linalg.norm(estimated_pose[0:2] - checkPoint[0:2]) < 0.05:                
                 break
@@ -132,21 +145,29 @@ def main(screenshot=False):
     pf_states = np.array(pf_states)
     pf_error = np.array(pf_error)
     
-
     plt.figure(1)
+    plt.title("Particle Distribution")
+    plt.plot(pf_states[:,0],pf_states[:,1],label='True Path',linestyle='-',color='blue')
+    plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='red')
+    # plt.plot(kf_states[:, 0], kf_states[:, 1], label='Kalman Filter Path', linestyle='--',color = 'green')
+    plt.legend()
+
+    plt.figure(2)
     plt.title("Robot Trajectory")
     plt.plot(kf_states[:, 0], kf_states[:, 1], label='Kalman Filter Path', linestyle='--',color = 'green', marker='x')
     plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='red', marker='o')
     plt.plot(pf_states[:, 0], pf_states[:, 1], label='Particle Filter Path', linestyle='--',color = 'blue', marker='o')
     plt.legend()
     
-    plt.figure(2)
+    plt.figure(3)
     plt.title("kf_error between current position and target")
     plt.plot(kf_error,linestyle='-',color='red')
     plt.plot(pf_error,linestyle='-',color='blue')
     plt.legend()
     plt.grid(True)
     plt.show()
+
+    plt.ioff()
     
     execute_trajectory(robots['pr2'], base_joints, pf_states, sleep=0.2)
     
