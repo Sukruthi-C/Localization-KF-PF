@@ -253,6 +253,7 @@ def create_obs_env(number):
 
 
 if __name__ == '__main__':
+    print("Runtime for each environment: ~30 seconds. \nTotal runtime: ~2-4 mins\n")
     for i in range(1, 5):
         print("***********************************************************************")
         print("Running Environment: ", i, "\n")
