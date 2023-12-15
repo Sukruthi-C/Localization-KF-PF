@@ -11,29 +11,60 @@ from helper_fcn import plot_cov
 #########################
 
 def main(screenshot=False):
-    # initialize PyBullet
-    connect(use_gui=True)
-    # load robot and obstacle resources
-    robots, obstacles = load_env('pr2_env1.json')
+    robots = None
+    obstacles = None
+    print("********************************************************************")
+    print("**                 Select the environment                         **")
+    print("*********************************************************************")
+    number = input("Enter a number between 1-3 (included)")
+
+    match int(number):
+        case 1:
+            # load robot and obstacle resources
+            connect(use_gui=True)
+            robots, obstacles = load_env('pr2_env1.json')
+            goal_configs = np.array([[-1.2,-1.4,0],
+                                [-1.2,1.3,0],
+                                [3.4, 1.3,0]])
+            # Waypoints
+            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((3.4, 1.3, 1), 0.06, (0, 0, 1, 1))
+        case 2:
+            connect(use_gui=True)
+            robots, obstacles = load_env('pr2_env2.json')
+            goal_configs = np.array([[-1.2,-1.4,0],
+                            [-1.2,1.3,0],
+                            [-3.4, 2.5,0]])
+            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-3.4, 2.5, 1), 0.06, (0, 0, 1, 1))
+
+        case 3:
+            connect(use_gui=True)
+            robots, obstacles = load_env('pr2_env3.json')
+            goal_configs = np.array([[-1.2,-1.4,0],
+                            [-1.2,1.3,0],
+                            [0.5, 1.3,0],
+                            [0.5,-2.0,0],
+                            [3.0,-2.0,0],
+                            [3.5,1.5,0]])
+            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((0.8, -1.6, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((3.0,-1.6, 1), 0.06, (0, 0, 1, 1))
+            draw_sphere_marker((3.2, 1.5, 1), 0.06, (0, 0, 1, 1))
+        case _:
+            print("Not a valid input")
+            return
 
     # define active DoFs
     base_joints = [joint_from_name(robots['pr2'], name) for name in PR2_GROUPS['base']]
-    # print(kalman_filter(0,0,0))
     collision_fn = get_collision_fn_PR2(robots['pr2'], base_joints, list(obstacles.values()))
-
     start_config = np.array(get_joint_positions(robots['pr2'], base_joints))
-    print(start_config)
-    goal_configs = np.array([[-1.2,-1.4,0],
-                            [-1.2,1.3,0],
-                            [3.4, 1.3,0]])
-    
-    # Waypoints
-    draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
-    draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
-    draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
-    draw_sphere_marker((3.4, 1.3, 1), 0.06, (0, 0, 1, 1))
-
-    
     initial_state = start_config  # Initial state (x, y, heading)
     initial_covariance = np.diag([1, 1, 1])  # Initial covariance matrix
     process_noise = [0.001, 0.001, 0.001]  # Process noise (velocity, angular velocity, heading change)
@@ -65,7 +96,7 @@ def main(screenshot=False):
         ##############################################################################################################
         ###########################                     KALMAN FILTER                      ###########################    
         ##############################################################################################################
-        
+
         # Execute till the robot converges to the target point.
         while True:
             control_input = kf.velocity_model(kf.state, checkPoint)
