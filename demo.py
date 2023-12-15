@@ -40,20 +40,20 @@ def main(screenshot=False):
     measurement_noise = np.diag([0.0001, 0.0001, 0.0001])  # Measurement noise covariance (x, y,theta)
     
     # Create Kalman filter
-    kf = KalmanFilter(initial_state, initial_covariance, process_noise, measurement_noise,0.01,0.1)
+    kf = KalmanFilter(initial_state, initial_covariance, process_noise, measurement_noise,0.1,0.1)
 
 
     # Particle filter
     pf = Particle_Filter()
     # particles = np.random.rand(pf.num_particles, 2) * np.array([-3.4,-1.4])
-    particles = np.ones((pf.num_particles, 2)) * np.array([-3.4,-1.4])
+    particles = np.ones((pf.num_particles, 3)) * np.array([-3.4,-1.4,0])
 
     # Store the computed trajectory
     kf_states = []
     kf_error = []
     num_steps = 1000
     pf_states = [np.mean(particles, axis=0)]
-    true_trajectory = np.zeros((num_steps, 2))
+    true_trajectory = np.zeros((num_steps, 3))
     pf_error = []
 
     # Compute trajectory for all the waypoints
@@ -70,7 +70,7 @@ def main(screenshot=False):
             control_input = kf.velocity_model(kf.state, checkPoint)
             kf_error.append(kf.calculateError(kf.state, prevPoint, checkPoint))
             
-            if(np.linalg.norm(kf.state - checkPoint) < 0.05):
+            if(np.linalg.norm(kf.state - checkPoint) < 0.1):
                 break
             
             kf_states.append(kf.state)
@@ -93,12 +93,15 @@ def main(screenshot=False):
             control = np.array([
                     (checkPoint[0] - true_pose[0])/pf.dt,  # Vx
                     (checkPoint[1] - true_pose[1])/pf.dt,  # Vy
+                    (checkPoint[2] - true_pose[2])/pf.dt,  # w
                 ])
-            control = np.clip(control,-pf.velocityLimit,pf.velocityLimit)
+            control[0:2] = np.clip(control[0:2],-pf.velocityLimit,pf.velocityLimit)
+            # control[2] = np.clip(control[2],-pf.velocityLimit,pf.velocityLimit)
 
             particles = pf.motion_model(particles, control)
             measurement = np.array([true_pose[0] + np.random.normal(0, pf.measurement_noise),
-                                    true_pose[1] + np.random.normal(0, pf.measurement_noise)])
+                                    true_pose[1] + np.random.normal(0, pf.measurement_noise),
+                                    true_pose[2] + np.random.normal(0, pf.measurement_noise)])
 
             # Update particle weights based on measurement model
             weights = pf.measurement_model(particles, measurement)
@@ -108,11 +111,11 @@ def main(screenshot=False):
             # Estimate the robot's pose based on particle positions (mean or weighted mean)
             estimated_pose = np.mean(particles, axis=0)
             # Store true and estimated poses
-            true_trajectory[step] = true_pose[0:2]
+            true_trajectory[step] = true_pose
             pf_states.append(estimated_pose)
             pf_error.append(pf.calculateError(estimated_pose,true_pose,checkPoint))
             true_pose = estimated_pose
-            if np.linalg.norm(estimated_pose[0:2] - checkPoint[0:2]) < 0.01:                
+            if np.linalg.norm(estimated_pose - checkPoint) < 0.01:                
                 break
 
         
@@ -128,7 +131,7 @@ def main(screenshot=False):
 
     plt.figure(1)
     plt.title("Robot Trajectory")
-    plt.plot(kf_states[:, 0], kf_states[:, 1], label='Kalman Filter Path', linestyle='--',color = 'green', marker='o')
+    plt.plot(kf_states[:, 0], kf_states[:, 1], label='Kalman Filter Path', linestyle='--',color = 'green', marker='x')
     plt.plot(actual_states[:,0], actual_states[:,1], label='True Path', linestyle='-', color='red', marker='o')
     plt.plot(pf_states[:, 0], pf_states[:, 1], label='Particle Filter Path', linestyle='--',color = 'blue', marker='o')
     plt.legend()
