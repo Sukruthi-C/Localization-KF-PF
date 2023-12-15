@@ -10,13 +10,14 @@ import matplotlib.pyplot as plt
 from helper_fcn import plot_cov
 #########################
 
-def main(screenshot=False):
+def main(number):
     robots = None
     obstacles = None
-    print("********************************************************************")
-    print("**                 Select the obstacle environment                **")
-    print("*********************************************************************")
-    number = input("Enter a number between 1-4 (included)")
+    # print("********************************************************************")
+    # print("**                 Select the obstacle environment                **")
+    # print("*********************************************************************")
+    # number = input("Enter a number between 1-4 (included):")
+    # number = int(number)
     robots,obstacles,goal_configs = create_obs_env(number)
     
 
@@ -116,10 +117,31 @@ def main(screenshot=False):
         
         prevPoint = checkPoint
     
+    # Kalman Filter: Blue
+    # Particel Filter: Green
+    # Collision points: Red
+        
+    # Plot Kalman Filter Path
+    collision_flag = False
     for pose in kf_states:
         if(collision_fn(pose)):
-            print("WALL COLLISION")
-            break
+            draw_sphere_marker((pose[0],pose[1], 0.5), 0.06, (1, 0, 0, 1))
+            collision_flag = True
+        else:
+            draw_sphere_marker((pose[0],pose[1], 0.5), 0.06, (0, 0, 1, 1))
+    if collision_flag:
+        print("KALMAN FILTER PATH IS IN COLLISION")
+    
+    # Plot Particle Filter Path
+    collision_flag = False
+    for pose in pf_states:
+        if(collision_fn(pose)):
+            draw_sphere_marker((pose[0],pose[1], 0.8), 0.06, (1, 0, 0, 1))
+            collision_flag = True
+        else:
+            draw_sphere_marker((pose[0],pose[1], 0.8), 0.06, (0, 1, 0, 1))
+    if collision_flag:
+        print("PARTICLE FILTER PATH IS IN COLLISION")
     
     # Plot the results
     kf_states = np.array(kf_states)
@@ -127,7 +149,9 @@ def main(screenshot=False):
     kf_error = np.array(kf_error)
     pf_states = np.array(pf_states)
     pf_error = np.array(pf_error)
-    
+
+
+    execute_trajectory(robots['pr2'], base_joints, pf_states, sleep=0.2)
     plt.figure(1)
     plt.title("Particle Distribution")
     plt.plot(pf_states[:,0],pf_states[:,1],label='Particle Filter Path',linestyle='-',color='blue')
@@ -144,90 +168,97 @@ def main(screenshot=False):
     
     plt.figure(3)
     plt.title("Error between current position and target")
-    plt.plot(kf_error,linestyle='-',color='red')
-    plt.plot(pf_error,linestyle='-',color='blue')
+    plt.plot(kf_error,linestyle='-',color='red',label='Kalman Filter Error')
+    plt.plot(pf_error,linestyle='-',color='blue',label='Particle Filter Error')
     plt.legend()
     plt.grid(True)
     plt.show()
 
     plt.ioff()
     time.sleep(5)
-    execute_trajectory(robots['pr2'], base_joints, pf_states, sleep=0.2)
+    print("Please close MATPLOT windows to run next environment. Do not close the Pybullet simulation\n")
     
     # Keep graphics window opened
     wait_if_gui()
     disconnect()
 
 def create_obs_env(number):
-    match int(number):
-        case 1:
-            # load robot and obstacle resources
-            connect(use_gui=True)
-            robots, obstacles = load_env('pr2_env1.json')
-            goal_configs = np.array([[-1.2,-1.4,0],
-                                [-1.2,1.3,0],
-                                [3.4, 1.3,0]])
-            # Waypoints
-            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
-            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((3.4, 1.3, 1), 0.06, (0, 0, 1, 1))
-            return robots,obstacles,goal_configs
-        case 2:
-            connect(use_gui=True)
-            robots, obstacles = load_env('pr2_env2.json')
-            goal_configs = np.array([[-1.2,-1.4,0],
+    if number == 1:
+        # load robot and obstacle resources
+        connect(use_gui=True)
+        robots, obstacles = load_env('pr2_env1.json')
+        goal_configs = np.array([[-1.2,-1.4,0],
                             [-1.2,1.3,0],
-                            [-3.4, 2.5,0]])
-            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
-            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-3.4, 2.5, 1), 0.06, (0, 0, 1, 1))
-            return robots,obstacles,goal_configs
-
-        case 3:
-            connect(use_gui=True)
-            robots, obstacles = load_env('pr2_env3.json')
-            goal_configs = np.array([[-1.2,-1.4,0],
-                            [-1.2,1.3,0],
-                            [0.5, 1.3,0],
-                            [0.5,-2.0,0],
-                            [3.0,-2.0,0],
-                            [3.5,1.5,0]])
-            draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
-            draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((0.8, -2.0, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((3.0,-2.0, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((3.2, 1.5, 1), 0.06, (0, 0, 1, 1))
-            return robots,obstacles,goal_configs
-        case 4:
-            connect(use_gui=True)
-            robots, obstacles = load_env('pr2_env4.json')
-            goal_configs = np.array([[-1.5,-1.6,0],
-                            [-1.5,-0.5,0],
-                            [-3.3, 0.0,0],
-                            [-3.3,1.5,0],
-                            [0.5,1.5,0],
-                            [0.5,0.6,0],
-                            [-0.5,-0.7,0],
-                            [0.3,-1.7,0],
-                            [3.4,-1.7,0]])
-            draw_sphere_marker((-3.4,-1.6, 1), 0.06, (1, 0, 0, 1))
-            draw_sphere_marker((-1.5,-1.6, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-1.5,-0.5, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-3.3, 0.0, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-3.3,1.5, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((0.5, 1.5, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((0.5, 0.6, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((-0.5, -0.7, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((0.3, -1.7, 1), 0.06, (0, 0, 1, 1))
-            draw_sphere_marker((3.4, -1.7, 1), 0.06, (0, 0, 1, 1))
-            return robots,obstacles,goal_configs
-        case _:
-            print("Not a valid input")
-            return
+                            [3.4, 1.3,0]])
+        # Waypoints
+        # draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+        # draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((3.4, 1.3, 1), 0.06, (0, 0, 1, 1))
+        return robots,obstacles,goal_configs
+    elif number == 2:
+        connect(use_gui=True)
+        robots, obstacles = load_env('pr2_env2.json')
+        goal_configs = np.array([[-1.2,-1.4,0],
+                        [-1.2,1.3,0],
+                        [-1.2,2.1,0],
+                        [-3.4, 2.2,0]])
+        # draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+        # draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((-3.4, 2.5, 1), 0.06, (0, 0, 1, 1))
+        return robots,obstacles,goal_configs
+    elif number == 3:
+        connect(use_gui=True)
+        robots, obstacles = load_env('pr2_env3.json')
+        goal_configs = np.array([[-1.2,-1.4,0],
+                        [-1.2,1.3,0],
+                        [0.5, 1.3,0],
+                        [0.6,-2.0,0],
+                        [3.0,-2.0,0],
+                        [3.4,1.5,0]])
+        # draw_sphere_marker((-3.4,-1.4, 1), 0.06, (1, 0, 0, 1))
+        # draw_sphere_marker((-1.2,-1.4, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((-1.2,1.3, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((0.8, -2.0, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((3.0,-2.0, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((3.2, 1.5, 1), 0.06, (0, 0, 1, 1))
+        return robots,obstacles,goal_configs
+    elif number == 4:
+        connect(use_gui=True)
+        robots, obstacles = load_env('pr2_env4.json')
+        goal_configs = np.array([[-2.0,-1.6,0],
+                        [-2.0,-0.5,0],
+                        [-3.3,-0.3,0],
+                        [-3.3,1.8,0],
+                        [0.5,1.8,0],
+                        [0.5,0.6,0],
+                        [-0.5,-0.7,0],
+                        [0.3,-1.7,0],
+                        [3.4,-1.7,0]])
+        # draw_sphere_marker((-3.4,-1.6, 1), 0.06, (1, 0, 0, 1))
+        # draw_sphere_marker((-1.5,-1.6, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((-1.5,-0.5, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((-3.3, 0.0, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((-3.3,1.5, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((0.5, 1.5, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((0.5, 0.6, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((-0.5, -0.7, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((0.3, -1.7, 1), 0.06, (0, 0, 1, 1))
+        # draw_sphere_marker((3.4, -1.7, 1), 0.06, (0, 0, 1, 1))
+        return robots,obstacles,goal_configs
+    else:
+        print("Not a valid input")
+        return
 
 
 if __name__ == '__main__':
-    main()
+    for i in range(1, 5):
+        print("***********************************************************************")
+        print("Running Environment: ", i, "\n")
+        main(i)
+        
+        # Show the plots and wait for the user to close the windows
+        plt.show(block=True)
+        # Close all figures to prepare for the next environment
+        plt.close('all')
