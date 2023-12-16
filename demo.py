@@ -254,6 +254,8 @@ def create_obs_env(number):
 
 if __name__ == '__main__':
     print("Runtime for each environment: ~30 seconds. \nTotal runtime: ~2-4 mins\n")
+    print("INSTRUCTION: When the plots are visible, only close the plots, keep the pybullet simulation open.\n")
+    time.sleep(9)
     for i in range(1, 5):
         print("***********************************************************************")
         print("Running Environment: ", i, "\n")
