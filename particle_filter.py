@@ -45,7 +45,8 @@ class Particle_Filter():
         particles[:, 2] += control[2] * self.dt  # Update w
 
         # Add motion noise
-        particles += np.random.multivariate_normal(np.array([0,0,0]),np.diag([0.001,0.001,0.001]),size=self.num_particles)
+        particles+=np.random.uniform(low=-0.001,high=0.001,size = ((1000,3)))
+        # particles += np.random.multivariate_normal(np.array([0,0,0]),np.diag([0.001,0.001,0.001]),size=self.num_particles)
         return particles
     
     def calculateError(self, point, line_start, line_end):
