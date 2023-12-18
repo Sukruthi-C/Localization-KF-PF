@@ -84,7 +84,8 @@ noise associated with it is also lower
 
 
 
-
+### Youtube:
+Link: https://youtube.com/playlist?list=PLp10txzP4kbHfUR9XASin_6qsvqL1lneQ&feature=shared
 
 
 
