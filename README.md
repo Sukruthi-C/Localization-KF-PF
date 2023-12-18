@@ -20,6 +20,18 @@ python3 demo.py
 ```
 
 ### Results:
+The contrasting performance of the Kalman Filter and Par-
+ticle Filter underscores the importance of selecting an appro-
+priate filtering technique based on the system’s characteristics
+and environmental conditions. The Particle Filter’s resilience
+in non-linear and unpredictable environments makes it a more
+versatile choice for state estimation in complex scenarios.
+This simulation study demonstrates that while the Kalman
+Filter is effective in linear systems with Gaussian noise, its
+limitations become evident in more complex environments.
+The Particle Filter, with its flexibility and adaptability, offers
+a robust alternative for state estimation in scenarios where the
+Kalman Filter falters
 #### Simulation environments for testing:
 There are four simulation environments for testing of Kalman Filter and Particle Filter. The robot’s trajectory is simulated in the PyBullet environment, executing movements toward each target position. Both the Kalman Filter and Particle Filter paths are visualized in green and blue dots respectively with collision points marked in red.
 <p align="center">
