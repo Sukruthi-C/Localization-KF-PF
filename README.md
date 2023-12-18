@@ -24,24 +24,14 @@ python3 demo.py
 There are four simulation environments for testing of Kalman Filter and Particle Filter. The robot’s trajectory is simulated in the PyBullet environment, executing movements toward each target position. Both the Kalman Filter and Particle Filter paths are visualized, with collision points marked in red.
 <p align="center">
   <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/f5eab693-c6c4-487b-a277-c666b3785fdd" width="200" height="200" alt="Simulation Environment 1"/>
-  <br>
-  Caption for Image 1
-</p>
-<p align="center">
-  <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/f161eb51-59a6-486b-8c13-6fc82a5d875f" width="200" height="200" alt="Simulation Environment 2"/>
-  <br>
-  Caption for Image 2
-</p>
-<p align="center">
+   <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/f161eb51-59a6-486b-8c13-6fc82a5d875f" width="200" height="200" alt="Simulation Environment 2"/>
   <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/8102d410-05bd-45b7-956c-5030bb312a1a" width="200" height="200" alt="Simulation Environment 3"/>
-  <br>
-  Caption for Image 3
+  <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/48c0b1ae-5f17-4873-811c-17581f19438b" width="200" height="200" alt="Simulation Environment 4"/>
 </p>
 <p align="center">
-  <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/48c0b1ae-5f17-4873-811c-17581f19438b" width="200" height="200" alt="Simulation Environment 4"/>
-  <br>
-  Caption for Image 4
+  Simulation Environment 1 | Simulation Environment 2 | Simulation Environment 3 | Simulation Environment 4
 </p>
+
 
 
 
