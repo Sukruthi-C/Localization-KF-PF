@@ -3,7 +3,7 @@
 ## About:
 The quest for accurate localization of autonomous robots forms the bedrock of efficient navigation and decision-making. Kalman and particle filters are widely used in robotics for tasks like robot navigation and mapping. These filters help estimate the robot's position and orientation based on sensor data. This project focuses on the implementation and comparative analysis of Particle and Kalman filters for navigation in a simulated environment. Utilizing a PR2 robot model, the study delves into the challenges of autonomous navigation amidst obstacles, emphasizing the accuracy of trajectory estimation under varying conditions. Autonomous navigation in environments laden with obstacles poses significant challenges in robotics, especially in terms of accurate localization and path planning. To address these challenges, this project implements advanced filtering techniques - Particle filters and Kalman filters - integrated into a PR2 robot navigating within a simulated environment crafted in PyBullet.
 
-##Intructions:
+## Intructions:
 1. Clone the repository. 
 
 ```
@@ -18,6 +18,20 @@ cd Localization-KF-PF
 ```
 python3 demo.py
 ```
+
+### Results:
+#### Simulation environments for testing:
+There are four simulation environments for testing of Kalman Filter and Particle Filter. The robot’s trajectory is simulated in the PyBullet environment, executing movements toward each target position. Both the Kalman Filter and Particle Filter paths are visualized, with collision points marked in red.
+1. ![env1_simulation](https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/f5eab693-c6c4-487b-a277-c666b3785fdd)
+2. ![env1_simulation](https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/f161eb51-59a6-486b-8c13-6fc82a5d875f)
+3. ![env3_simulation](https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/8102d410-05bd-45b7-956c-5030bb312a1a)
+4. ![env4_simulation](https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/48c0b1ae-5f17-4873-811c-17581f19438b)
+
+
+
+
+
+
 
 ### Project Status
 1. **Current Phase:** Completed. 
