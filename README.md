@@ -80,9 +80,7 @@ noise associated with it is also lower
 
 
 
-### Project Status
-1. **Current Phase:** Completed. 
-2. **Completion Date:** 12-15-2023.
+
 
 ### Development Environment Requirements
 1. **Python 3.8+**
@@ -90,12 +88,6 @@ noise associated with it is also lower
 3. **Matplotlib 3.4+**
 4. **PyBullet**
 Additional dependencies listed in requirements.txt.
-
-### Installation and Usage Guide
-1. To get started, clone the repository.
-2. Install dependencies: 
-    pip install -r requirements.txt.
-3. Run the main script: python3 main.py.
 
 ### Python official documentation
 1. NumPy documentation - https://numpy.org/doc/
@@ -108,6 +100,10 @@ Additional dependencies listed in requirements.txt.
 2. **Advancing Changes:** Follow the standard GitHub fork-and-pull request workflow.
 3. **Known Bugs and Fixes**
 Currently, no known bugs. Please report any issues discovered.
+
+### Project Status
+1. **Current Phase:** Completed. 
+2. **Completion Date:** 12-15-2023.
 
 ### FAQ Section
 1. **Q:** What are the key differences between KF and PF in this project?
