@@ -21,7 +21,7 @@ python3 demo.py
 
 ### Results:
 #### Simulation environments for testing:
-There are four simulation environments for testing of Kalman Filter and Particle Filter. The robot’s trajectory is simulated in the PyBullet environment, executing movements toward each target position. Both the Kalman Filter and Particle Filter paths are visualized, with collision points marked in red.
+There are four simulation environments for testing of Kalman Filter and Particle Filter. The robot’s trajectory is simulated in the PyBullet environment, executing movements toward each target position. Both the Kalman Filter and Particle Filter paths are visualized in green and blue dots respectively with collision points marked in red.
 <p align="center">
   <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/f5eab693-c6c4-487b-a277-c666b3785fdd" width="230" height="180" alt="Simulation Environment 1"/>
    <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/f161eb51-59a6-486b-8c13-6fc82a5d875f" width="230" height="180" alt="Simulation Environment 2"/>
@@ -33,6 +33,21 @@ There are four simulation environments for testing of Kalman Filter and Particle
 </p>
 
 
+#### Simulation environments for testing:
+In Figure 1 both the Kalman and Particle Filter were able
+to localize the robot and follow the trajectory. In Figure 2, the
+Kalman Filter failed as the robot was too close to the wall,
+and the estimated position collided with the wall. These states
+are represented with a red dot. In both Figure 2 and Figure 2
+the covariance distribution of the particles is shown in black
+ellipse. 
+<p align="center">
+  <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/b90c0276-8876-4ab9-b1be-15a74598f4ea" width="250" height="200" alt="des"/>
+   <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/31d4e6cf-3b62-4a3e-8cb1-06d6cf909d7a" width="250" height="200" alt="des"/>
+</p>
+<p align="center">
+  Figure 1 | Figure 2 
+</p>
 
 
 
