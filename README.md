@@ -1,5 +1,12 @@
 # Robot Localization: Kalman Filter and Particle Filter
 
+<p align="center">
+  <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/455f24b1-365e-4048-8739-a3c4b70bc4d3" width="250" height="200" alt="des"/>
+   <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/d9e13d52-5e89-43aa-be91-ffeded3c4e65" width="250" height="200" alt="des"/>
+</p>
+
+
+
 ## About:
 The quest for accurate localization of autonomous robots forms the bedrock of efficient navigation and decision-making. Kalman and particle filters are widely used in robotics for tasks like robot navigation and mapping. These filters help estimate the robot's position and orientation based on sensor data. This project focuses on the implementation and comparative analysis of Particle and Kalman filters for navigation in a simulated environment. Utilizing a PR2 robot model, the study delves into the challenges of autonomous navigation amidst obstacles, emphasizing the accuracy of trajectory estimation under varying conditions. Autonomous navigation in environments laden with obstacles poses significant challenges in robotics, especially in terms of accurate localization and path planning. To address these challenges, this project implements advanced filtering techniques - Particle filters and Kalman filters - integrated into a PR2 robot navigating within a simulated environment crafted in PyBullet.
 
