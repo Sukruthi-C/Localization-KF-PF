@@ -33,7 +33,7 @@ There are four simulation environments for testing of Kalman Filter and Particle
 </p>
 
 
-#### Simulation environments for testing:
+#### Trajectory path for KF and PF:
 In Figure 1 both the Kalman and Particle Filter were able
 to localize the robot and follow the trajectory. In Figure 2, the
 Kalman Filter failed as the robot was too close to the wall,
@@ -44,6 +44,19 @@ ellipse.
 <p align="center">
   <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/b90c0276-8876-4ab9-b1be-15a74598f4ea" width="250" height="200" alt="des"/>
    <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/31d4e6cf-3b62-4a3e-8cb1-06d6cf909d7a" width="250" height="200" alt="des"/>
+</p>
+<p align="center">
+  Figure 1 | Figure 2 
+</p>
+
+#### Trajectory error for KF and PF:
+Figure 1 and 2 show the Trajectory error of the Kalman
+Filter and Particle Filter in both environments. Particle Filter
+takes less time to reach the goal than Kalman Filter and the
+noise associated with it is also lower
+<p align="center">
+  <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/72dd9939-c03c-4864-bcf3-a68aec496695" width="250" height="200" alt="des"/>
+   <img src="https://github.com/Sukruthi-C/Localization-KF-PF/assets/123084588/c0b197f4-b055-438e-b96b-e76170109451" width="250" height="200" alt="des"/>
 </p>
 <p align="center">
   Figure 1 | Figure 2 
